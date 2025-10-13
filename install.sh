@@ -29,17 +29,17 @@ CORE_DEPENDENCIES=(
 	'zsh'
 )
 
+# --------- Repository Settings --------------
+
+REPOSITORY_LOCAL_DIR="${REPOSITORY_LOCAL_DIR:-$HOME/Projects/dotfiles}"
+REPOSITORY_URL="${REPOSITORY_URL:-https://github.com/nvooi/dotfiles}"
+
 # --------- Predefined Escape Codes ----------
 
 EC_PURPLE='\033[0;35m'
 EC_YELLOW='\033[0;93m'
 EC_LIGHT='\x1b[2m'
 EC_RESET='\033[0m'
-
-# --------- Repository Settings --------------
-
-REPOSITORY_LOCAL_DIR="${REPOSITORY_LOCAL_DIR:-$HOME/Projects/dotfiles}"
-REPOSITORY_URL="${REPOSITORY_URL:-https://github.com/nvooi/dotfiles}"
 
 # --------- Script Behaviour Functions -------
 
@@ -158,9 +158,13 @@ function clone_dotfiles_repository () {
 # Execute setup script from the repository
 function execute_repository_setup_script () {
 	if [[ -f "${REPOSITORY_LOCAL_DIR}/setup.sh" ]]; then
-		cd "${REPOSITORY_LOCAL_DIR}" && \
-			chmod +x ./setup.sh && \
-			./setup.sh --no-clear
+		cd "${REPOSITORY_LOCAL_DIR}" &&                         \
+			chmod +x ./setup.sh &&                              \
+			./setup.sh                                          \
+                REPOSITORY_LOCAL_DIR="${REPOSITORY_LOCAL_DIR}"  \
+                REPOSITORY_URL="${REPOSITORY_URL}"              \
+                --no-clear 
+
 	else
 		echo -e "${EC_YELLOW}setup.sh not found in ${REPOSITORY_LOCAL_DIR}.${EC_RESET}"
 	fi
