@@ -11,6 +11,13 @@
 REPOSITORY_LOCAL_DIR="${REPOSITORY_LOCAL_DIR:-$HOME/Projects/dotfiles}"
 REPOSITORY_URL="${REPOSITORY_URL:-https://github.com/nvooi/dotfiles}"
 
+# --------- System Settings ------------------
+
+SOURCE_DIR=$(dirname ${0})
+CURRENT_DIR=$(cd "$(dirname ${BASH_SOURCE[0]})" && pwd)
+SYSTEM_TYPE=$(uname -s)
+START_TIME=`date +%s`
+
 # --------- Predefined Escape Codes ----------
 
 EC_RED='\033[1;31m'
@@ -20,6 +27,13 @@ EC_YELLOW='\033[0;93m'
 EC_CYAN='\033[0;96m'
 EC_LIGHT='\x1b[2m'
 EC_RESET='\033[0m'
+
+# --------- Script Usage ---------------------
+
+# Show script introduction
+function print_usage() {
+	echo -e "\n${EC_PURPLE}Dotfiles Setup Script${EC_RESET}\n"
+}
 
 # --------- Banner ---------------------------
 
@@ -60,8 +74,8 @@ function print_usage() {
 # Ask user if they want to proceed
 function confirm_proceeding() {
 	if [[ ! $* == *"--auto-confirm"* ]]; then
-		echo -e "${EC_PURPLE}Would you like to continue? (y/N)${EC_RESET}"
-		read -t 60 -n 1 -r && echo
+		echo -e "${EC_CYAN}Would you like to continue? (y/N)${EC_RESET}"
+		read -t 60 -n 1 -r && echo -e "\n"
 
 		if [[ ! $REPLY =~ ^[Yy]$ ]]; then
 			echo -e "${EC_YELLOW}[WARNING]: Proceeding was rejected by user.${EC_RESET}"
@@ -75,6 +89,10 @@ function prepare_setup () {
     ensure_command_available "git" true
     ensure_command_available "vim" false 
     ensure_command_available "zsh" false 
+
+    if [ "${SYSTEM_TYPE}" = "Darwin" ]; then
+        ensure_command_available "brew" true
+    fi
 
     # Ensure XDG environment
     if [ -z ${XDG_CONFIG_HOME+x} ]; then
@@ -106,11 +124,42 @@ function ensure_command_available() {
     fi
 }
 
-# --------- Script Usage ---------------------
+# --------- Installing Packages --------------
 
-# Show script introduction
-function print_usage() {
-	echo -e "\n${EC_PURPLE}Dotfiles Setup Script${EC_RESET}\n"
+function install_macos_packages () {
+    if ! is_command_available "brew"; then
+        echo -e "${EC_YELLOW}[WARNING]: Homebrew is not installed!${EC_RESET}"
+        return
+    fi
+
+    local f="${REPOSITORY_LOCAL_DIR}/install/brew/Brewfile"
+
+    if [ -f "${f}" ]; then
+        echo -e "${EC_GREEN}[INFO] Updating Homebrew and packages...${EC_RESET}"
+        brew update && brew upgrade
+        brew bundle --file "${f}"
+        brew cleanup
+        killall Finder
+    else
+        echo -e "${EC_YELLOW}[WARNING]: Brewfile not found!${EC_RESET}"
+    fi
+}
+
+function install_packages () {
+    echo -e "${EC_CYAN}Would you like to install system packages? (y/N)${EC_RESET}"
+    read -t 60 -n 1 -r ans && echo -e "\n"
+
+    if [[ ! $ans =~ ^[Yy]$ ]]; then
+        echo -e "${EC_YELLOW}[WARNING]: Skipping system packages installation.${EC_RESET}"
+        return
+    fi
+
+    if [ "${SYSTEM_TYPE}" = "Darwin" ]; then
+        install_macos_packages
+    else
+        echo -e "${EC_RED}[ERROR]: Unsupported OS type!${EC_RESET}"
+        terminate
+    fi
 }
 
 # --------- Run the Script -------------------
@@ -120,4 +169,6 @@ if [[ $* == *"--help"* ]]; then exit 0; fi
 
 confirm_proceeding "$@"
 prepare_setup
+
+install_packages
 
