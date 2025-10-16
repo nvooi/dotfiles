@@ -1,186 +1,273 @@
 #!/usr/bin/env bash
 
-# -------------------------------------------
-# Dotfiles Installation Script
-# -------------------------------------------
+# --------------------------------------------
+# Dotfiles Setup Script
+# --------------------------------------------
 #
-# Description: This script installs or updates dotfiles from a specified
-#              Git repository, and ensures required dependencies are installed
-#              based on the system's OS type.
-#
-# Maintainer:  nvooi <nvooito@gmail.com>
-# Repository:  https://github.com/nvooi/dotfiles
-# License:     MIT
-#
-# Usage:
-#   ./install.sh [--auto-confirm] [--help]
-#
-# Options:
-#   --auto-confirm   Skip the interactive confirmation prompt.
-#   --help           Display usage/help message and exit.
-#
-# -------------------------------------------
-
-# --------- Core Dependencies List -----------
-
-CORE_DEPENDENCIES=(
-	'git'
-	'vim'
-	'zsh'
-)
+# --------------------------------------------
 
 # --------- Repository Settings --------------
 
 REPOSITORY_LOCAL_DIR="${REPOSITORY_LOCAL_DIR:-$HOME/Projects/dotfiles}"
 REPOSITORY_URL="${REPOSITORY_URL:-https://github.com/nvooi/dotfiles}"
 
+# --------- System Settings ------------------
+
+SOURCE_DIR=$(dirname ${0})
+CURRENT_DIR=$(cd "$(dirname ${BASH_SOURCE[0]})" && pwd)
+SYSTEM_TYPE=$(uname -s)
+START_TIME=`date +%s`
+
 # --------- Predefined Escape Codes ----------
 
+EC_RED='\033[1;31m'
+EC_GREEN='\033[1;32m'
 EC_PURPLE='\033[0;35m'
 EC_YELLOW='\033[0;93m'
+EC_CYAN='\033[0;96m'
 EC_LIGHT='\x1b[2m'
 EC_RESET='\033[0m'
 
-# --------- Script Behaviour Functions -------
+# --------- Script Usage ---------------------
 
 # Show script introduction
 function print_usage() {
-	echo -e "\n${EC_PURPLE}Dotfiles Installation Script${EC_RESET}\n"
-	echo -e "This script will install or update specified dotfiles:\n\
-	${EC_PURPLE}- From: ${EC_YELLOW}${REPOSITORY_URL}${EC_RESET}\n\
-	${EC_PURPLE}- Into: ${EC_YELLOW}${REPOSITORY_LOCAL_DIR}${EC_RESET}\n"
-	echo -e "${EC_PURPLE}${EC_LIGHT}This script will attempt to install required packages"\
-	"based on your operating system. Elevated permissions may be required."\
-	"\nPlease review the script before proceeding.\n${EC_RESET}"
+	echo -e "\n${EC_PURPLE}Dotfiles Setup Script${EC_RESET}\n"
+}
+
+# --------- Banner ---------------------------
+
+function banner_length () {
+    local text=$1
+    local padding_length="${3:-0}"
+    echo $(expr ${#text} + 4 + $padding_length)
+}
+
+function print_banner () {
+    local text=$1
+    local color="${2:-$EC_CYAN}"
+    local length=$(banner_length "$@")
+
+    local line_char="-"
+    local line=""
+
+    for (( i = 0; i < "$length"; ++i )); do
+        line="${line}${line_char}"
+    done
+
+    banner="${color}${line} \n| ${EC_RESET}${text}${color} |\n${line}"
+    echo -e "\n${banner}${EC_RESET}\n"
+}
+
+# --------- Script Behaviour Functions -------
+#
+function terminate () {
+    print_banner "Setup failed. Terminating!" $EC_RED
+    exit 1
+}
+
+# Show script introduction
+function print_usage() {
+	echo -e "\n${EC_PURPLE}Dotfiles Setup Script${EC_RESET}\n"
 }
 
 # Ask user if they want to proceed
 function confirm_proceeding() {
 	if [[ ! $* == *"--auto-confirm"* ]]; then
 		echo -e "${EC_PURPLE}Would you like to continue? (y/N)${EC_RESET}"
-		read -t 60 -n 1 -r && echo
+		read -t 60 -n 1 -r && echo -e "\n"
 
 		if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-			echo -e "${EC_YELLOW}Proceeding was rejected by user.${EC_RESET}"
-			exit 0
+			echo -e "${EC_YELLOW}[WARNING]: Proceeding was rejected by user.${EC_RESET}"
+            terminate
 		fi
 	fi
 }
 
-# --------- MacOS Helpers ---------------------
+function prepare_setup () {
+    # Ensure required commands
+    ensure_command_available "git" true
+    ensure_command_available "vim" false 
+    ensure_command_available "zsh" false 
 
-# Install CLI Tools on macOS
-function install_mac_cli_tools () {
-    echo -e "${EC_PURPLE}Installing macOS CLI Tools.${EC_RESET}"
-	xcode-select --install >/dev/null 2>&1
+    if [ "${SYSTEM_TYPE}" = "Darwin" ]; then
+        export PATH="/opt/homebrew/bin:$PATH"
+        ensure_command_available "brew" true
+    fi
 
-	# Wait untill installation process is finished
-	until xcode-select -p &>/dev/null; do
-		sleep 5
-	done
-
-	# Path to Xcode if installed
-	local x=$(find '/Applications' -maxdepth 1 -regex '.*/Xcode[^ ]*.app' -print -quit)
-	local d="${x}/Contents/Developer"
-
-	if [ -d "$d" ]; then
-		sudo xcode-select -s "$d"
-	fi
-
-	if /usr/bin/xcrun clang &> /dev/null; then
-    	sudo xcodebuild -license accept
-	fi
+    # Ensure XDG environment
+    if [ -z ${XDG_CONFIG_HOME+x} ]; then
+        echo -e "${EC_YELLOW}[WARNING]: XDG_CONFIG_HOME is not set. Will use ~/.config${EC_RESET}"
+        export XDG_CONFIG_HOME="${HOME}/.config"
+    fi
+    if [ -z ${XDG_DATA_HOME+x} ]; then
+        echo -e "${EC_YELLOW}[WARNING]: XDG_DATA_HOME is not set. Will use ~/.local/share${EC_RESET}"
+        export XDG_DATA_HOME="${HOME}/.local/share"
+    fi
 }
 
-# Install Homebrew on macOS
-function install_homebrew () {
-	echo -e "${EC_PURPLE}Installing Homebrew...${EC_RESET}"
-	/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+# --------- Dependencies Helper --------------
+
+function is_command_available() {
+    hash "$1" 2> /dev/null
 }
 
-# --------- Dependencies Install Functions ----
+function ensure_command_available() {
+    if is_command_available "$1"; then
+        return
+    fi
 
-# Install a core dependency using APT (Debian/Ubuntu)
-function install_core_dependency_debian () {
-	echo -e "${EC_PURPLE}Installing ${1} via apt...${EC_RESET}"
-	sudo apt update && sudo apt install -y "$1"
+    if $2; then
+        echo -e "${EC_RED}[ERROR]: $1 is not installed!${EC_RESET}"
+        terminate
+    else
+        echo -e "${EC_YELLOW}[WARNING]: $1 is not installed!${EC_RESET}"
+    fi
 }
 
-# Install a core dependency using Homebrew (macOS)
-function install_core_dependency_macos () {
-	echo -e "${EC_PURPLE}Installing ${1} via brew...${EC_RESET}"
-	brew install "$1"
+# --------- Installing Configs ---------------
+
+function make_soft_link () {
+    local target="$1"
+    local source="$2"
+    
+    echo -e "${EC_GREEN}[INFO]: Linking $target -> $source${EC_RESET}"
+    mkdir -p "$(dirname $target)"
+    
+    if [[ -f "$PWD/$source" || -d "$PWD/$source" ]]; then
+        ln -sf "$PWD/$source" "$target"
+    fi
+
 }
 
-# Install a core dependency, OS agnostic
-function install_core_dependency () {
-	dependency=$1
+function install_configs () {
+    # Pull repo
+    
+    if [[ ! -d "${REPOSITORY_LOCAL_DIR}" ]]; then
+        echo -e "${EC_RED}[ERROR]: Dotfiles repo ${REPOSITORY_LOCAL_DIR} not present.${EC_RESET}"
+        terminate
+    else
+        echo -e "${EC_GREEN}[INFO]: Pulling latest changes from ${REPOSITORY_URL}.${EC_RESET}"
+        cd "${REPOSITORY_LOCAL_DIR}" && git pull origin main
+    fi
+    
+    # Symlinks
 
-	if [ -f "/etc/debian_version" ] && hash apt 2> /dev/null; then
-		install_core_dependency_debian "$dependency"
+    echo -e "${EC_GREEN}[INFO]: Cleaning old symlinks.${EC_RESET}"
+    rm -rf "$HOME/.zshenv" "$XDG_CONFIG_HOME"
 
-	elif [ "$(uname -s)" = "Darwin" ]; then
-	    export PATH="/opt/homebrew/bin:$PATH"
-    	if ! xcode-select -p &>/dev/null; then install_mac_cli_tools; fi
-		if ! hash brew 2> /dev/null; then install_homebrew; fi
-		install_core_dependency_macos "$dependency"
+    echo -e "${EC_GREEN}[INFO]: Settings up symlinks.${EC_RESET}"
+    make_soft_link "$HOME/.zshenv" "config/zsh/.zshenv"
+    make_soft_link "$HOME/.gitconfig" "config/git/.gitconfig"
+    make_soft_link "$XDG_CONFIG_HOME/zsh" "config/zsh"
+    make_soft_link "$XDG_CONFIG_HOME/nvim" "config/nvim"
+    make_soft_link "$XDG_CONFIG_HOME/.gitignore_global" "config/git/.gitignore_global"
 
-	else
-		echo -e "${EC_YELLOW}Unsupported OS type. Exiting!${EC_RESET}"
-		exit 1
-	fi
+    echo 
 }
 
-# Install all core dependencies
-function install_all_core_dependencies () {
-	for dependency in "${CORE_DEPENDENCIES[@]}"; do
-		if ! hash "$dependency" 2> /dev/null; then
-			install_core_dependency "$dependency"
-		else
-			echo -e "${EC_YELLOW}${dependency} is already installed.${EC_RESET}"
-		fi
-	done
+# --------- Installing System Preferenves ----
+
+function install_macos_system_preferences () {
+    local f="${REPOSITORY_LOCAL_DIR}/script/macos/install.sh"
+
+    if [ -f "${f}" ]; then
+        echo -e "${EC_GREEN}[INFO]: Setting system preferences.${EC_RESET}"
+        chmod +x "${f}" && ( $f )
+    else
+        echo -e "${EC_YELLOW}[WARNING]: System preferences not found!${EC_RESET}"
+    fi
 }
 
-# --------- Repo Helper Functions ------------
+function install_system_preferences() {
+    echo -en "${EC_CYAN}Would you like to set system preferences? (y/N)${EC_RESET}\n"
+    read -t 60 -n 1 -r ans && echo -e "\n"
 
-# Clone dotfiles repository
-function clone_dotfiles_repository () {
-	if [[ ! -d "$REPOSITORY_LOCAL_DIR" ]]; then
-		echo -e "${EC_PURPLE}Cloning dotfiles repository...${EC_RESET}"
-		mkdir -p "${REPOSITORY_LOCAL_DIR}" && \
-			git clone --recursive "${REPOSITORY_URL}" "${REPOSITORY_LOCAL_DIR}"
-	else
-		echo -e "${EC_YELLOW}Repository already exists at ${REPOSITORY_LOCAL_DIR}.${EC_RESET}"
-	fi
+    if [[ ! $ans =~ ^[Yy]$ ]]; then
+        echo -e "${EC_YELLOW}[WARNING]: Skipping system preferences setup.${EC_RESET}"
+        echo && return
+    fi
+
+    if [ "${SYSTEM_TYPE}" = "Darwin" ]; then
+        install_macos_system_preferences
+    else
+        echo -e "${EC_RED}[ERROR]: Unsupported OS type!${EC_RESET}"
+        terminate
+    fi
+
+    echo
 }
 
-# Execute setup script from the repository
-function execute_repository_setup_script () {
-	if [[ -f "${REPOSITORY_LOCAL_DIR}/setup.sh" ]]; then
-		cd "${REPOSITORY_LOCAL_DIR}" &&                         \
-			chmod +x ./setup.sh &&                              \
-			./setup.sh                                          \
-                REPOSITORY_LOCAL_DIR="${REPOSITORY_LOCAL_DIR}"  \
-                REPOSITORY_URL="${REPOSITORY_URL}"              \
-                --no-clear 
 
-	else
-		echo -e "${EC_YELLOW}setup.sh not found in ${REPOSITORY_LOCAL_DIR}.${EC_RESET}"
-	fi
+# --------- Installing Packages --------------
+
+function install_macos_packages () {
+    if ! is_command_available "brew"; then
+        echo -e "${EC_YELLOW}[WARNING]: Homebrew is not installed!${EC_RESET}"
+        return
+    fi
+
+    local f="${REPOSITORY_LOCAL_DIR}/script/Brewfile"
+
+    if [ -f "${f}" ]; then
+        echo -e "${EC_GREEN}[INFO]: Updating Homebrew and packages.${EC_RESET}"
+        brew update && brew upgrade && brew bundle --file "${f}"
+        brew cleanup
+        killall Finder
+    else
+        echo -e "${EC_YELLOW}[WARNING]: Brewfile not found!${EC_RESET}"
+    fi
+}
+
+function install_packages () {
+    echo -en "${EC_CYAN}Would you like to install system packages? (y/N)${EC_RESET}\n"
+    read -t 60 -n 1 -r ans && echo -e "\n"
+
+    if [[ ! $ans =~ ^[Yy]$ ]]; then
+        echo -e "${EC_YELLOW}[WARNING]: Skipping system packages installation.${EC_RESET}"
+        echo && return
+    fi
+
+    if [ "${SYSTEM_TYPE}" = "Darwin" ]; then
+        install_macos_packages
+    else
+        echo -e "${EC_RED}[ERROR]: Unsupported OS type!${EC_RESET}"
+        terminate
+    fi
+
+    echo
+}
+
+# --------- Finalize Setup -------------------
+
+function finalize_setup () {
+    # Update source to ZSH entry point
+    source "${HOME}/.zshenv"
+
+    # Show press any key to exit
+    echo -e "${EC_GREEN}[FINISHED]: Press any key to exit.${EC_RESET}"
+    read -t 60 -n 1 -s
+
+    # Bye
+    exit 0
 }
 
 # --------- Run the Script -------------------
+#
+# Clear screen
+if [[ ! $* == *"--no-clear"* ]] && [[ ! $* == *"--help"* ]]; then
+    clear
+fi
 
 print_usage
 if [[ $* == *"--help"* ]]; then exit 0; fi
 
 confirm_proceeding "$@"
-install_all_core_dependencies
+prepare_setup
 
-clone_dotfiles_repository
-execute_repository_setup_script
+install_configs
+install_system_preferences
+install_packages
 
-echo -e "\n${EC_PURPLE}All done. Exiting!${EC_RESET}\n"
-exit 0
+finalize_setup
 

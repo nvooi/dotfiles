@@ -14,5 +14,5 @@ The process is split into two parts:
 To install your dotfiles on a fresh system, run:
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/nvooi/dotfiles/master/install.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/nvooi/dotfiles/master/bootstap.sh)
 
