@@ -1,6 +1,7 @@
 # Options
 cask_args appdir: "~/Applications", require_sha: true
 
+# Terminal
 brew "neovim", args: ["--HEAD"]
 brew "tmux"
 

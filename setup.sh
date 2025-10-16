@@ -74,7 +74,7 @@ function print_usage() {
 # Ask user if they want to proceed
 function confirm_proceeding() {
 	if [[ ! $* == *"--auto-confirm"* ]]; then
-		echo -e "${EC_CYAN}Would you like to continue? (y/N)${EC_RESET}"
+		echo -e "${EC_PURPLE}Would you like to continue? (y/N)${EC_RESET}"
 		read -t 60 -n 1 -r && echo -e "\n"
 
 		if [[ ! $REPLY =~ ^[Yy]$ ]]; then
@@ -124,6 +124,43 @@ function ensure_command_available() {
     fi
 }
 
+# --------- Installing Configs ---------------
+
+function make_soft_link () {
+    local target="$1"
+    local source="$2"
+    
+    echo -e "${EC_GREEN}[INFO]: Linking $target -> $source${EC_RESET}"
+    mkdir -p "$(dirname $target)"
+    
+    if [[ -f "$PWD/$source" || -d "$PWD/$source" ]]; then
+        ln -sf "$PWD/$source" "$target"
+    fi
+
+}
+
+function install_configs () {
+    # Pull repo
+    
+    if [[ ! -d "${REPOSITORY_LOCAL_DIR}" ]]; then
+        echo -e "${EC_RED}[ERROR]: Dotfiles repo ${REPOSITORY_LOCAL_DIR} not present.${EC_RESET}"
+        terminate
+    else
+        echo -e "${EC_GREEN}[INFO]: Pulling latest changes from ${REPOSITORY_URL}.${EC_RESET}"
+        cd "${REPOSITORY_LOCAL_DIR}" && git pull origin main
+    fi
+    
+    # Symlinks
+
+    echo -e "${EC_GREEN}[INFO]: Cleaning old symlinks.${EC_RESET}"
+    rm -rf "$HOME/.zshenv" "$XDG_CONFIG_HOME"
+
+    echo -e "${EC_GREEN}[INFO]: Settings up symlinks.${EC_RESET}"
+    make_soft_link "$XDG_CONFIG_HOME/nvim" "config/nvim"
+
+    echo 
+}
+
 # --------- Installing Packages --------------
 
 function install_macos_packages () {
@@ -135,9 +172,8 @@ function install_macos_packages () {
     local f="${REPOSITORY_LOCAL_DIR}/install/brew/Brewfile"
 
     if [ -f "${f}" ]; then
-        echo -e "${EC_GREEN}[INFO] Updating Homebrew and packages...${EC_RESET}"
-        brew update && brew upgrade
-        brew bundle --file "${f}"
+        echo -e "${EC_GREEN}[INFO]: Updating Homebrew and packages.${EC_RESET}"
+        brew update && brew upgrade && brew bundle --file "${f}"
         brew cleanup
         killall Finder
     else
@@ -146,7 +182,7 @@ function install_macos_packages () {
 }
 
 function install_packages () {
-    echo -e "${EC_CYAN}Would you like to install system packages? (y/N)${EC_RESET}"
+    echo -en "${EC_CYAN}Would you like to install system packages? (y/N)${EC_RESET}\n"
     read -t 60 -n 1 -r ans && echo -e "\n"
 
     if [[ ! $ans =~ ^[Yy]$ ]]; then
@@ -170,5 +206,6 @@ if [[ $* == *"--help"* ]]; then exit 0; fi
 confirm_proceeding "$@"
 prepare_setup
 
+install_configs
 install_packages
 
