@@ -161,7 +161,7 @@ function install_configs () {
     make_soft_link "$HOME/.gitconfig" "config/git/.gitconfig"
     make_soft_link "$XDG_CONFIG_HOME/zsh" "config/zsh"
     make_soft_link "$XDG_CONFIG_HOME/nvim" "config/nvim"
-    make_soft_link "$XDG_CONFIG_HOME/kitty" "config/kitty"
+    make_soft_link "$XDG_CONFIG_HOME/nvim" "config/nvim"
     make_soft_link "$XDG_CONFIG_HOME/aerospace" "config/aerospace"
     make_soft_link "$XDG_CONFIG_HOME/.gitignore_global" "config/git/.gitignore_global"
 
@@ -221,6 +221,23 @@ function install_macos_packages () {
     fi
 }
 
+function install_gem_packages () {
+    if ! is_command_available "gem"; then
+        echo -e "${EC_YELLOW}[WARNING]: gem is not installed!${EC_RESET}"
+        return
+    fi
+
+    local f="${REPOSITORY_LOCAL_DIR}/script/gemfile.sh"
+
+    if [ -f "${f}" ]; then
+        echo -e "${EC_GREEN}[INFO]: Updating gem packages.${EC_RESET}"
+        chmod +x "${f}" && . $f
+    else
+        echo -e "${EC_YELLOW}[WARNING]: gemfile.sh not found!${EC_RESET}"
+    fi
+
+}
+
 function install_packages () {
     echo -en "${EC_CYAN}Would you like to install system packages? (y/N)${EC_RESET}\n"
     read -t 60 -n 1 -r ans && echo -e "\n"
@@ -232,6 +249,7 @@ function install_packages () {
 
     if [ "${SYSTEM_TYPE}" = "Darwin" ]; then
         install_macos_packages
+        install_gem_packages
     else
         echo -e "${EC_RED}[ERROR]: Unsupported OS type!${EC_RESET}"
         terminate

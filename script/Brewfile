@@ -1,10 +1,53 @@
 # Options
 cask_args appdir: "~/Applications", require_sha: true
 
+# Taps
+tap 'jesseduffield/lazygit'
+
 # Editors
+
+# CLI Terminal
+brew "tmux"
+cask "kitty"
 brew "neovim", args: ["--HEAD"]
 
-# Terminals
-cask "kitty"
-brew "tmux"
+# CLI Tools
+brew "fzf"
+brew "jq"
+brew "sd"
+brew "ripgrep"
+
+# API
+cask "postman" 
+
+# Lang
+brew "lua"
+brew "ruby", link: true
+brew "rust"
+
+# Compilers
+brew "bazel"
+brew "node"
+
+# Git
+cask "fork"
+brew "lazygit"
+
+# Swift/Xcode
+brew "swiftlint"
+brew "swiftformat"
+brew "xcode-build-server"
+
+# Music
+cask "spotify", args: { require_sha: false }
+
+# Social
+cask "discord"
+
+# UI
+cask "nikitabobko/tap/aerospace"
+brew "FelixKratz/formulae/borders"
+
+# Fonts
+cask "font-iosevka-nerd-font"
 
