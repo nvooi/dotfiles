@@ -161,6 +161,8 @@ function install_configs () {
     make_soft_link "$HOME/.gitconfig" "config/git/.gitconfig"
     make_soft_link "$XDG_CONFIG_HOME/zsh" "config/zsh"
     make_soft_link "$XDG_CONFIG_HOME/nvim" "config/nvim"
+    make_soft_link "$XDG_CONFIG_HOME/kitty" "config/kitty"
+    make_soft_link "$XDG_CONFIG_HOME/aerospace" "config/aerospace"
     make_soft_link "$XDG_CONFIG_HOME/.gitignore_global" "config/git/.gitignore_global"
 
     echo 
