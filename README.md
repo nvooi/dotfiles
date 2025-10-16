@@ -4,8 +4,8 @@ This repository contains personal dotfiles and a setup process for configuring y
 
 The process is split into two parts:
 
-- `install.sh`: Prepares the system by installing core dependencies (e.g. `git`, `vim`, `zsh`), cloning this repository, and calling the main setup script.
-- `setup.sh`: The main script that applies your environment configuration, including symlinks, shell setup, and editor configuration.
+- `bootstrap.sh`: Prepares the system by installing core dependencies (e.g. `git`, `vim`, `zsh`), cloning this repository, and calling the main setup script.
+- `install.sh`: The main script that applies your environment configuration, including symlinks, shell setup, and editor configuration.
 
 ---
 
@@ -14,5 +14,5 @@ The process is split into two parts:
 To install your dotfiles on a fresh system, run:
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/nvooi/dotfiles/master/bootstap.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/nvooi/dotfiles/master/bootstrap.sh)
 

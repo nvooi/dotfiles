@@ -55,19 +55,18 @@ EC_RESET='\033[0m'
 ## @function print_usage
 ## @description Prints a rich, expressive usage guide with colorized sections and examples.
 function print_usage() {
-
 	echo -e "\n${EC_PURPLE}Dotfiles Installation Script${EC_RESET}\n"
     echo -e "${EC_CYAN}Description:${EC_RESET}"
     echo -e "  Automates configuration of your development environment by linking"
     echo -e "  dotfiles, installing required packages, and applying macOS preferences.\n"
 
     echo -e "${EC_CYAN}Behavior:${EC_RESET}"
-    echo -e "  ¥ Ensures all required tools (git, zsh, vim, brew) are installed."
-    echo -e "  ¥ Pulls the latest version of your dotfiles repository."
-    echo -e "  ¥ Creates symlinks for zsh, git, nvim, and other configs."
-    echo -e "  ¥ Optionally installs system and Ruby gem packages."
-    echo -e "  ¥ Optionally applies macOS system preferences."
-    echo -e "  ¥ Reloads the environment upon completion.\n"
+    echo -e "  Ensures all required tools (git, zsh, vim, brew) are installed."
+    echo -e "  Pulls the latest version of your dotfiles repository."
+    echo -e "  Creates symlinks for zsh, git, nvim, and other configs."
+    echo -e "  Optionally installs system and Ruby gem packages."
+    echo -e "  Optionally applies macOS system preferences."
+    echo -e "  Reloads the environment upon completion.\n"
 
     echo -e "${EC_CYAN}Environment Variables:${EC_RESET}"
     echo -e "  ${EC_YELLOW}REPOSITORY_LOCAL_DIR${EC_RESET}   Override local path to dotfiles repo."
