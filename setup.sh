@@ -157,6 +157,8 @@ function install_configs () {
     rm -rf "$HOME/.zshenv" "$XDG_CONFIG_HOME"
 
     echo -e "${EC_GREEN}[INFO]: Settings up symlinks.${EC_RESET}"
+    make_soft_link "$HOME/.zshenv" "config/zsh/.zshenv"
+    make_soft_link "$XDG_CONFIG_HOME/zsh" "config/zsh"
     make_soft_link "$XDG_CONFIG_HOME/nvim" "config/nvim"
 
     echo 
