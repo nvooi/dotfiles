@@ -158,8 +158,10 @@ function install_configs () {
 
     echo -e "${EC_GREEN}[INFO]: Settings up symlinks.${EC_RESET}"
     make_soft_link "$HOME/.zshenv" "config/zsh/.zshenv"
+    make_soft_link "$HOME/.gitconfig" "config/git/.gitconfig"
     make_soft_link "$XDG_CONFIG_HOME/zsh" "config/zsh"
     make_soft_link "$XDG_CONFIG_HOME/nvim" "config/nvim"
+    make_soft_link "$XDG_CONFIG_HOME/.gitignore_global" "config/git/.gitignore_global"
 
     echo 
 }
