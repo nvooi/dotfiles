@@ -45,13 +45,16 @@ EC_RESET='\033[0m'
 
 # Show script introduction
 function print_usage() {
-	echo -e "\n${EC_PURPLE}Dotfiles Installation Script${EC_RESET}\n"
+	echo -e "\n${EC_PURPLE}Dotfiles Bootstrapping Script${EC_RESET}\n"
 	echo -e "This script will install or update specified dotfiles:\n\
 	${EC_PURPLE}- From: ${EC_YELLOW}${REPOSITORY_URL}${EC_RESET}\n\
 	${EC_PURPLE}- Into: ${EC_YELLOW}${REPOSITORY_LOCAL_DIR}${EC_RESET}\n"
 	echo -e "${EC_PURPLE}${EC_LIGHT}This script will attempt to install required packages"\
 	"based on your operating system. Elevated permissions may be required."\
 	"\nPlease review the script before proceeding.\n${EC_RESET}"
+    echo -e "${EC_CYAN}Environment Variables:${EC_RESET}"
+    echo -e "   ${EC_CYAN}REPOSITORY_LOCAL_DIR${EC_RESET}   Override local path to dotfiles repo."
+    echo -e "   ${EC_CYAN}REPOSITORY_URL${EC_RESET}         Override remote Git URL for dotfiles.\n"
 }
 
 # Ask user if they want to proceed
