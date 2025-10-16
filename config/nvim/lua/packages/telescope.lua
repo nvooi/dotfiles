@@ -3,7 +3,9 @@ vim.pack.add({
     { src = 'https://github.com/nvim-telescope/telescope.nvim' }
 })
 
-require('telescope').setup()
+require('telescope').setup({
+      ensure_installed = { "swift" }
+})
 
 vim.keymap.set("n", "<leader>ff",
     "<cmd>lua require('telescope.builtin').find_files()<CR>", { desc = "Telescope find files" })

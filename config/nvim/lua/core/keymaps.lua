@@ -8,7 +8,7 @@ vim.g.maplocalleader = " "                         -- Set local leader key (NEW)
 
 -- Quit/Save
 vim.keymap.set("n", "<leader>q", ":q<CR>", { desc = "Quit" })
-vim.keymap.set("n", "<leader>w", ":w<CR>", { desc =  "Save File" })
+vim.keymap.set("n", "<leader>w", ":wa<CR>", { desc =  "Save File" })
 
 -- Quick file navigation
 vim.keymap.set("n", "<leader>e", ":Explore<CR>", { desc = "Open file explorer" })

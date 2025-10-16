@@ -1,5 +1,10 @@
 require('packages.oil')
 require('packages.telescope')
 require('packages.lazygit')
+require('packages.fidget')
+require('packages.xcodebuild')
+require('packages.lualine')
 require('packages.cmp')
+require('packages.dap')
+require('packages.dap-ui')
  
