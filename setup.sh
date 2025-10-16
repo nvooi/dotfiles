@@ -91,6 +91,7 @@ function prepare_setup () {
     ensure_command_available "zsh" false 
 
     if [ "${SYSTEM_TYPE}" = "Darwin" ]; then
+        export PATH="/opt/homebrew/bin:$PATH"
         ensure_command_available "brew" true
     fi
 

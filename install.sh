@@ -120,7 +120,7 @@ function install_core_dependency () {
 		install_core_dependency_debian "$dependency"
 
 	elif [ "$(uname -s)" = "Darwin" ]; then
-	export PATH="/opt/homebrew/bin:$PATH"
+	    export PATH="/opt/homebrew/bin:$PATH"
     	if ! xcode-select -p &>/dev/null; then install_mac_cli_tools; fi
 		if ! hash brew 2> /dev/null; then install_homebrew; fi
 		install_core_dependency_macos "$dependency"
