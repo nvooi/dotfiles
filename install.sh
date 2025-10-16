@@ -96,7 +96,6 @@ function install_mac_cli_tools () {
 function install_homebrew () {
 	echo -e "${EC_PURPLE}Installing Homebrew...${EC_RESET}"
 	/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-	export PATH="/opt/homebrew/bin:$PATH"
 }
 
 # --------- Dependencies Install Functions ----
@@ -121,6 +120,7 @@ function install_core_dependency () {
 		install_core_dependency_debian "$dependency"
 
 	elif [ "$(uname -s)" = "Darwin" ]; then
+	export PATH="/opt/homebrew/bin:$PATH"
     	if ! xcode-select -p &>/dev/null; then install_mac_cli_tools; fi
 		if ! hash brew 2> /dev/null; then install_homebrew; fi
 		install_core_dependency_macos "$dependency"
