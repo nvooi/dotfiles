@@ -238,6 +238,32 @@ function install_gem_packages () {
 
 }
 
+function install_codelldb () {
+    local d="$XDG_DATA_HOME/codelldb"
+    local u=""
+
+    if [ "${SYSTEM_TYPE}" = "Darwin" ]; then
+        u="https://github.com/vadimcn/codelldb/releases/download/v1.11.7/codelldb-darwin-arm64.vsix"
+    fi 
+    
+    if [[ -z "${u}" || -d "${d}" ]]; then
+        return
+    fi
+
+    echo -en "${EC_CYAN}Would you like to install codelldb? (y/N)${EC_RESET}\n"
+    read -t 60 -n 1 -r ans && echo -e "\n"
+j
+     if [[ ! $ans =~ ^[Yy]$ ]]; then
+        echo -e "${EC_YELLOW}[WARNING]: Skipping codelldb installation.${EC_RESET}"
+        echo && return
+    fi
+
+
+    curl --create-dirs -O -L --output-dir /tmp/codelldb "${u}" && \
+        unzip /tmp/codelldb/codelldb-darwin-arm64.vsix -d "${d}"
+    rm -rf /tmp/codelldb
+}
+
 function install_packages () {
     echo -en "${EC_CYAN}Would you like to install system packages? (y/N)${EC_RESET}\n"
     read -t 60 -n 1 -r ans && echo -e "\n"
@@ -248,12 +274,14 @@ function install_packages () {
     fi
 
     if [ "${SYSTEM_TYPE}" = "Darwin" ]; then
-        install_macos_packages
-        install_gem_packages
+        install_macos_packages && echo
+        install_gem_packages && echo
     else
         echo -e "${EC_RED}[ERROR]: Unsupported OS type!${EC_RESET}"
         terminate
     fi
+
+    install_codelldb
 
     echo
 }

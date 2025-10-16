@@ -47,3 +47,8 @@ $RECYCLE.BIN/
 [._]s[a-rt-v][a-z]
 [._]ss[a-gi-z]
 [._]sw[a-p]
+
+# Other 
+oil:
+buildServer.json
+
