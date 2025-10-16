@@ -203,6 +203,20 @@ function install_packages () {
     fi
 }
 
+# --------- Finalize Setup -------------------
+
+function finalize_setup () {
+    # Update source to ZSH entry point
+    source "${HOME}/.zshenv"
+
+    # Show press any key to exit
+    echo -e "\n${EC_GREEN}[FINISHED]: Press any key to exit.${EC_RESET}"
+    read -t 60 -n 1 -s
+
+    # Bye
+    exit 0
+}
+
 # --------- Run the Script -------------------
 
 print_usage
@@ -213,4 +227,6 @@ prepare_setup
 
 install_configs
 install_packages
+
+finalize_setup
 
