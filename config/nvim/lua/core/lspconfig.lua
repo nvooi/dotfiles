@@ -1,9 +1,4 @@
 local lsps = { 
-    { 
-        "sourcekit", {
-            cmd = vim.trim(vim.fn.system("xcrun -f sourcekit-lsp")) 
-        }
-    }
 }
 
 for _, lsp in ipairs(lsps) do

@@ -5,6 +5,7 @@ require('packages.fidget')
 require('packages.xcodebuild')
 require('packages.lualine')
 require('packages.cmp')
+require('packages.cmp-nvim-lsp')
 require('packages.dap')
 require('packages.dap-ui')
  
