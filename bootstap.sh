@@ -121,13 +121,11 @@ function install_core_dependency () {
 
 	if [ -f "/etc/debian_version" ] && hash apt 2> /dev/null; then
 		install_core_dependency_debian "$dependency"
-
 	elif [ "$(uname -s)" = "Darwin" ]; then
 	    export PATH="/opt/homebrew/bin:$PATH"
     	if ! xcode-select -p &>/dev/null; then install_mac_cli_tools; fi
 		if ! hash brew 2> /dev/null; then install_homebrew; fi
 		install_core_dependency_macos "$dependency"
-
 	else
 		echo -e "${EC_YELLOW}Unsupported OS type. Exiting!${EC_RESET}"
 		exit 1
@@ -167,7 +165,6 @@ function execute_repository_setup_script () {
                 REPOSITORY_LOCAL_DIR="${REPOSITORY_LOCAL_DIR}"  \
                 REPOSITORY_URL="${REPOSITORY_URL}"              \
                 --no-clear 
-
 	else
 		echo -e "${EC_YELLOW}install.sh not found in ${REPOSITORY_LOCAL_DIR}.${EC_RESET}"
 	fi

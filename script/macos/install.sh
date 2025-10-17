@@ -46,7 +46,6 @@ trap cleanup EXIT
 # Check have got admin privilages
 if [ "$EUID" -ne 0 ]; then
   echo -e "\nElevated permissions are required to adjust system settings."
-  echo -e "Please enter your password:"
   script_path=$([[ "$0" = /* ]] && echo "$0" || echo "$PWD/${0#./}")
   sudo "$script_path" || (
     echo -e "${EC_RED}[ERROR]: Unable to continue without sudo permissions"
